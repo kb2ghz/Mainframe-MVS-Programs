@@ -1,0 +1,116 @@
+//PRG05   JOB CLASS=A,MSGCLASS=Z,TIME=(0,1)                             00000100
+//ASMFCLG  EXEC ASMFCLG                                                 00000200
+//ASM.SYSIN    DD *                                                     00000300
+         PRINT NOGEN                                                    00000400
+*                                                                       00000500
+         MACRO                                                          00000600
+         PSH   &REG                                                     00000700
+         ST    &REG,0(,3)     STORE ELEMENT ON STACK                    00000800
+         LA    3,4(3)         INCREMENT STACK POINTER                   00000900
+         MEND                                                           00001000
+*                                                                       00001100
+         MACRO                                                          00001200
+         PLP   &REG                                                     00001300
+         S     3,=F'4'        DECREMENT STACK POINTER                   00001400
+         L     &REG,0(,3)     READ ELEMENT FROM STACK                   00001500
+         MEND                                                           00001600
+*                                                                       00001700
+         MACRO                                                          00001800
+         JSR   &SUB                                                     00001900
+         LA    11,*+16        RETURN ADDRESS                            00002000
+         ST    11,0(,3)       SAVE ON STACK                             00002100
+         LA    3,4(,3)        ADJUST SP AFTER PUSH                      00002200
+         B     &SUB           JUMP TO SUBROUTINE                        00002300
+         MEND                                                           00002400
+*                                                                       00002500
+         MACRO                                                          00002600
+         RTS                                                            00002700
+         S     3,=F'4'       ADJUST STACK POINTER                       00002800
+         L     11,0(,3)      GET RETURN ADDRESS                         00002900
+         BR    11            RETURN TO CALLER                           00003000
+         MEND                                                           00003100
+*                                                                       00003200
+R0       EQU   0                                                        00003300
+R1       EQU   1                                                        00003400
+R2       EQU   2                                                        00003500
+R3       EQU   3                                                        00003600
+R4       EQU   4                                                        00003700
+R5       EQU   5                                                        00003800
+R6       EQU   6                                                        00003900
+R7       EQU   7                                                        00004000
+R8       EQU   8                                                        00004100
+R9       EQU   9                                                        00004200
+R10      EQU   10                                                       00004300
+R11      EQU   11                                                       00004400
+R12      EQU   12                                                       00004500
+R13      EQU   13                                                       00004600
+R14      EQU   14                                                       00004700
+R15      EQU   15                                                       00004800
+*                                                                       00004900
+BEGIN    CSECT                                                          00005000
+         SAVE  (14,12)                                                  00005100
+         BALR  12,0           SET UP BASE REGISTER                      00005200
+         USING *,12                                                     00005300
+         ST    13,SAVE+4      SAVE CALLER'S SAVE AREA                   00005400
+*                                                                       00005500
+         OPEN  (SNAPOUT,OUTPUT)                                         00005600
+         LA    R3,STACK       INITIALIZE STACK POINTER                  00005700
+         LA    R4,RESULTS     STORAGE AREA FOR RESULTS                  00005800
+         L     R6,=F'10'      10 TEST VALUES                            00005900
+         XR    R5,R5          START WITH FIB(0)                         00006000
+FIBLOOP  LR    R1,R5                                                    00006100
+         JSR   FIB            COMPUTE FIB(X)                            00006200
+         ST    R0,0(,R4)      SAVE RESULT ON LIST                       00006300
+         A     R5,=F'1'       NEXT TEST ARGUMENT                        00006400
+         LA    R4,4(,R4)      BUMP POINTER                              00006500
+         S     R6,=F'1'                                                 00006600
+         BNZ   FIBLOOP        DONE ?                                    00006700
+         SNAP  DCB=SNAPOUT,PDATA=(PSW,REGS),STORAGE=(RESULTS,EOR)       00006800
+         CLOSE SNAPOUT                                                  00006900
+         L     13,SAVE+4      RESTORE SAVE AREA                         00007000
+         RETURN (14,12),RC=0                                            00007100
+*                                                                       00007200
+         LTORG                                                          00007300
+*                                                                       00007400
+* FIBONACCI SEQUENCE SUBROUTINE                                         00007500
+* REGISTER USAGE:    R0  - RETURN RESULT                                00007600
+*                    R1  - FUNCTION ARGUMENT                            00007700
+*                    R2  - LOCAL VARIABLE                               00007800
+FIB      DS    0H                                                       00007900
+         PSH   R1                                                       00008000
+         PSH   R2                                                       00008100
+         NR    R1,R1         TEST FOR ZERO                              00008200
+         BNZ   FIBNZ         NOT ZERO                                   00008300
+         XR    R0,R0         RETURN ZERO                                00008400
+         B     FIBRET        RETURN TO CALLER                           00008500
+FIBNZ    C     R1,=F'1'      TEST FOR ONE                               00008600
+         BNZ   FIBNOT        NOT ONE                                    00008700
+         LR    R0,R1         RETURN ONE                                 00008800
+         B     FIBRET        RETURN TO CALLER                           00008900
+* FIB(N) = FIB(N-1)+FIB(N-2)                                            00009000
+FIBNOT   S     R1,=F'1'      N-1                                        00009100
+         JSR   FIB           COMPUTE F(N-1)                             00009200
+         LR    R2,R0         SAVE RESULT                                00009300
+         S     R1,=F'1'      R1 = N-2                                   00009400
+         JSR   FIB           COMPUTE F(N-2)                             00009500
+         AR    R0,R2         FIB(N-1)+FIB(N-2)                          00009600
+FIBRET   DS    0H                                                       00009700
+         PLP   R2            RESTORE REGISTERS                          00009800
+         PLP   R1                                                       00009900
+         RTS                 RETURN TO CALLER                           00010000
+*                                                                       00010100
+         LTORG                                                          00010200
+*                                                                       00010300
+         CNOP  0,4                                                      00010400
+*                                                                       00010500
+STACK    DS    100F          100 WORDS OF STACK                         00010600
+SAVE     DS    18F           SAVE AREA                                  00010700
+RESULTS  DS    10F           RESULTS                                    00010800
+EOR      DS    0F                                                       00010900
+SNAPOUT  DCB   DSORG=PS,RECFM=VBA,MACRF=W,BLKSIZE=882,LRECL=125,       X00011000
+               DDNAME=SNAPDUMP                                          00011100
+*                                                                       00011200
+         LTORG                                                          00011300
+         END   BEGIN                                                    00011400
+/*                                                                      00011500
+//GO.SNAPDUMP DD   SYSOUT=Z                                             00011600

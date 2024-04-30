@@ -1,0 +1,70 @@
+//PRG06   JOB CLASS=A,MSGCLASS=Z,TIME=(0,1)                             00000132
+//ASMFCLG  EXEC ASMFCLG,MAC1='SYS1.AMODGEN'                             00000220
+//ASM.SYSIN    DD *                                                     00000300
+         PRINT NOGEN                                                    00000400
+*                                                                       00000500
+R0       EQU   0                                                        00000600
+R1       EQU   1                                                        00000700
+R2       EQU   2                                                        00000800
+R3       EQU   3                                                        00000900
+R4       EQU   4                                                        00001000
+R5       EQU   5                                                        00001100
+R6       EQU   6                                                        00001200
+R7       EQU   7                                                        00001300
+R8       EQU   8                                                        00001400
+R9       EQU   9                                                        00001500
+R10      EQU   10                                                       00001600
+R11      EQU   11                                                       00001700
+R12      EQU   12                                                       00001800
+R13      EQU   13                                                       00001900
+R14      EQU   14                                                       00002000
+R15      EQU   15                                                       00002100
+*                                                                       00002200
+BEGIN    CSECT                                                          00002300
+         ENTRY TASKPRG                                                  00002435
+         SAVE  (14,12)                                                  00002500
+         BALR  R12,R0         SET UP BASE REGISTER                      00002621
+         USING *,12                                                     00002700
+         ST    R13,SAVE+4     SAVE CALLER'S SAVE AREA                   00002821
+*                                                                       00002901
+         WTO   'IDENTIFY CALL'                                          00003028
+         LA    2,TASKPRG                                                00003137
+         IDENTIFY EP=TASKPRG,ENTRY=(2)                                  00003237
+         WTO   'ATTACH CALL'                                            00003321
+         ATTACH EP=TASKPRG,ECB=ECB1                                     00003436
+         ST    R1,TCBADD      SAVE TCB'S ADDRESS                        00003521
+         ST    R15,RETCD      SAVE RETURN CODE                          00003621
+         NR    R15,R15        SUCCESSFUL TASK START?                    00003705
+         BNZ   FAIL                                                     00003805
+         WAIT  1,ECB=ECB1     WAIT FOR THE TASK TO END                  00003921
+         DETACH TCBADD        REMOVE TASK                               00004013
+         B      DONE                                                    00004124
+*                                                                       00004200
+FAIL     WTO   'ATTACH CALL FAILED'                                     00004321
+DONE     OPEN  (SNAPOUT,OUTPUT)                                         00004424
+         L     R15,RETCD      RETURN CODE                               00004523
+         SNAP  DCB=SNAPOUT,PDATA=(PSW,REGS)                             00004603
+         CLOSE SNAPOUT                                                  00004700
+         L     13,SAVE+4      RESTORE SAVE AREA                         00004800
+         RETURN (14,12),RC=0                                            00004900
+*                                                                       00005000
+TASKPRG  DS    0F                                                       00005102
+         WTO   'SUBTASK STARTING'                                       00005202
+         STIMER WAIT,BINTVL=WAITTIME                                    00005308
+         WTO   'SUBTASK STOPING'                                        00005409
+         POST  ECB1                                                     00005513
+         STATUS STOP,TCB=TCBADD                                         00005617
+*                                                                       00005700
+         CNOP  0,4                                                      00005800
+SAVE     DS    18F          SAVE AREA                                   00005909
+ECB1     DC    1F'0'        SUB TASK'S COMPLETION ECB                   00006025
+TCBADD   DS    F            TCB'S ADDRESS                               00006109
+RETCD    DS    F            ATTACH RETURN CODE                          00006221
+WAITTIME DC    F'300'       3 SECONDS                                   00006308
+SNAPOUT  DCB   DSORG=PS,RECFM=VBA,MACRF=W,BLKSIZE=882,LRECL=125,       X00006400
+               DDNAME=SNAPDUMP                                          00006500
+*                                                                       00006600
+         LTORG                                                          00006700
+         END   BEGIN                                                    00006800
+/*                                                                      00006900
+//GO.SNAPDUMP DD   SYSOUT=Z                                             00007032

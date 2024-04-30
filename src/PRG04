@@ -1,0 +1,62 @@
+//PRG04   JOB CLASS=A,MSGCLASS=Z,TIME=(0,1)                             00000100
+//ASMFCLG  EXEC ASMFCLG                                                 00000200
+//ASM.SYSIN    DD *                                                     00000300
+         PRINT NOGEN                                                    00000400
+BEGIN    CSECT                                                          00000500
+         SAVE  (14,12)       SAVE CALLER'S REGISTERS                    00000600
+         BALR  12,0          SET BASE REGISTER'S VALUE                  00000700
+         USING *,12                                                     00000800
+         ST    13,SAVE+4     SAVE CALLER'S SAVE AREA ADDRESS            00000900
+         OPEN  (SNAPPR,OUTPUT)                                          00001000
+         WTO   'PRG04 - BEGIN SORT OPERATION'                           00001100
+         BAL   11,SORT       DO BUBBLE SORT                             00001200
+         WTO   'PRG04 - SORT OPERATION COMPLETED'                       00001300
+         CLOSE SNAPPR                                                   00001400
+         L     13,SAVE+4     GET CALLER'S SAVE AREA ADDRESS             00001500
+         RETURN (14,12),RC=0 RESTORE THE CALLER'S REGISTERS             00001600
+*                                                                       00001700
+* BUBBLE SORT SUBROUTINE                                                00001800
+*                                                                       00001900
+SORT     SNAP  DCB=SNAPPR,PDATA=(PSW,REGS),STORAGE=(NUMBERS,SAVE)       00002000
+         XR    2,2           RESET TOTAL ITERATIONS COUNTER             00002100
+SCAN     LA    9,NUMBERS     LIST'S ADDRESS                             00002200
+         XR    10,10         RESET EXCHANGE FLAG                        00002300
+         LA    3,NM1         LOOP COUNT                                 00002400
+LOOP     L     0,0(9)        NUMBER FROM THE LIST                       00002500
+         L     1,4(9)        NEXT NUMBER                                00002600
+         CR    0,1           COMPARE ADJACENT NUMBERS                   00002700
+         BE    CONT          CONTINUE IF EQUAL                          00002800
+         BL    CONT          CONTINUE IF GREATER                        00002900
+         ST    0,4(9)        EXCHANGE NUMBERS                           00003000
+         ST    1,0(9)                                                   00003100
+         L     10,=F'1'      SET THE EXCHANGE FLAG                      00003200
+CONT     LA    9,4(9)        ADVANCE ADDRESS TO THE NEXT NUMBER         00003300
+         S     3,=F'1'       DECREMENT COUNTER                          00003400
+         BNZ   LOOP          CONTINUE SCANNING THE LIST                 00003500
+         A     2,=F'1'       INCREMENT ITERATIONS                       00003600
+         NR    10,10         TEST THE EXCHGANGE FLAG                    00003700
+         BNZ   SCAN          IF SET CONTINUE THE SORT                   00003800
+         SNAP  DCB=SNAPPR,PDATA=(PSW,REGS),STORAGE=(NUMBERS,SAVE)       00003900
+         BR    11            RETURN TO CALLER                           00004000
+*                                                                       00004100
+         CNOP  0,4                                                      00004200
+NUMBERS  DC    F'10'                                                    00004300
+         DC    F'9'                                                     00004400
+         DC    F'8'                                                     00004500
+         DC    F'7'                                                     00004600
+         DC    F'6'                                                     00004700
+         DC    F'5'                                                     00004800
+         DC    F'4'                                                     00004900
+         DC    F'3'                                                     00005000
+         DC    F'2'                                                     00005100
+         DC    F'1'                                                     00005200
+*                                                                       00005300
+SAVE     DS    18F           SAVE AREA STORAGE                          00005400
+N        EQU   (SAVE-NUMBERS)/4                                         00005500
+NM1      EQU   N-1                                                      00005600
+*                                                                       00005700
+SNAPPR  DCB   DSORG=PS,RECFM=VBA,MACRF=(W),BLKSIZE=882,LRECL=125,      X00005800
+               DDNAME=SNAPDUMP                                          00005900
+        END   BEGIN                                                     00006000
+/*                                                                      00006100
+//GO.SNAPDUMP DD   SYSOUT=Z                                             00006200

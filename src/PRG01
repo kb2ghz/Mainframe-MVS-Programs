@@ -1,0 +1,10 @@
+//PRG01   JOB CLASS=A,MSGCLASS=Z                                        00000100
+//ASMSTP  EXEC ASMFCLG PARM.ASM=(OBJ,NODECK)                            00000200
+//ASM.SYSIN    DD *                                                     00000300
+         PRINT GEN                                                      00000400
+BEGIN    CSECT                                                          00000500
+         XR    15,15                                                    00000600
+         BR    14                                                       00000700
+         END   BEGIN                                                    00000800
+/*                                                                      00000900
+//                                                                      00001000

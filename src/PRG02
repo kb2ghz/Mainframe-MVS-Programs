@@ -1,0 +1,18 @@
+//PRG02   JOB CLASS=A,MSGCLASS=Z                                        00000100
+//ASMSTP  EXEC ASMFCG PARM.ASM=(OBJ,NODECK)                             00000200
+//ASM.SYSIN    DD *                                                     00000300
+         PRINT GEN                                                      00000400
+BEGIN    CSECT                                                          00000500
+         STM   14,12,12(13)   SAVE CALLER'S REGISTERS                   00000600
+         BALR  12,0           SET BASE REGISTER'S VALUE                 00000700
+         USING *,12                                                     00000800
+         ST    13,SAVE+4      SAVE CALLER'S SAVE AREA ADDRESS           00000900
+         WTO   'MESSAGE FOR THE OPERATOR'                               00001000
+         L     13,SAVE+4      GET CALLER'S SAVE AREA ADDRESS            00001100
+         LM    14,12,12(13)   RESTORE THE CALLER'S REGISTERS            00001200
+         XR    15,15          RC=0                                      00001300
+         BR    14             RETURN                                    00001400
+SAVE     DS    18F            SAVE AREA STORAGE                         00001500
+         END   BEGIN                                                    00001600
+/*                                                                      00001700
+//                                                                      00001800
