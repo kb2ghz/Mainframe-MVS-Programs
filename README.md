@@ -24,4 +24,9 @@ PRG06                   This program starts a sub-task using the MVS IDENTIFY an
                         verified with WTO messages output by the main task and
                         the sub task.
 
+MKMACLIB.JCL            This JCL job is used to create a custom MACRO library used
+                        by some of the assembler examples in this repo.
+
+ICKDSF.JCL              This JCL job is used to format virtual disk drives created by
+                        dasdinit for use with Hercules and MVS 3.8j.
   
