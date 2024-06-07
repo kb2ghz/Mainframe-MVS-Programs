@@ -25,7 +25,7 @@ PRG06                   This program starts a sub-task using the MVS IDENTIFY an
                         the sub task.
 
 PRG07			This is a basic TSO application that sends a message to a
-			terminal. The assembler lenguage source and the JCL used to
+			terminal. The assembler language source and the JCL used to
                         assemble the program is provided in two files: PRG07.ASM and
                         PRG07.JCL.
 
