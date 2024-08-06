@@ -1,10 +1,7 @@
-Program                 Description
--------                 -----------
-PRG01                   A simple two instruction MVS program w/o a
-                        SAVE area and the JCL used to assemble the program.
-
-PRG02                   A simple MVS program that saves and restores the
-                        MVS SAVE area using S/370 STM/LTM instructions.
+|Program |                |Description|
+|------- |                |-----------|
+|PRG01  |               |  A simple two instruction MVS program w/o a SAVE area and the JCL used to assemble the program.|
+|PRG02 |                 | A simple MVS program that saves and restores the MVS SAVE area using S/370 STM/LTM instructions.|
 
 PRG03                   A simple MVS program that saves and restores the MVS
                         SAVE area using the SAVE/RESTORE macros.
